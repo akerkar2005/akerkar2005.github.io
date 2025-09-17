@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.57921332.css",
-    "main.js": "/static/js/main.ddb870f4.js",
+    "main.css": "/static/css/main.9f2cf45f.css",
+    "main.js": "/static/js/main.e8727040.js",
     "static/js/488.77c8748a.chunk.js": "/static/js/488.77c8748a.chunk.js",
     "static/media/wood.png": "/static/media/wood.0cad3e89686999281f49.png",
     "static/media/portrait.jpg": "/static/media/portrait.fb7c7632bf3017755cf4.jpg",
@@ -22,17 +22,17 @@
     "static/media/C.png": "/static/media/C.6e719e979cf559918ffb.png",
     "static/media/Skills.jpeg": "/static/media/Skills.81e8b48f49aaa082324a.jpeg",
     "static/media/whatsupboilerup.png": "/static/media/whatsupboilerup.9ada0f4f5f09a1dab4e2.png",
-    "static/media/potato.png": "/static/media/potato.7bc836200651d26db3a6.png",
     "static/media/ts.png": "/static/media/ts.16b157ea18cd87601675.png",
+    "static/media/potato.png": "/static/media/potato.aa15fe8c83f73f2bf99a.png",
     "static/media/face.svg": "/static/media/face.de68d9f592e82ca6e69cc5bc1cb2fda2.svg",
     "static/media/autocorrect.png": "/static/media/autocorrect.0fc7f05b45cd25f8c345.png",
     "index.html": "/index.html",
-    "main.57921332.css.map": "/static/css/main.57921332.css.map",
-    "main.ddb870f4.js.map": "/static/js/main.ddb870f4.js.map",
+    "main.9f2cf45f.css.map": "/static/css/main.9f2cf45f.css.map",
+    "main.e8727040.js.map": "/static/js/main.e8727040.js.map",
     "488.77c8748a.chunk.js.map": "/static/js/488.77c8748a.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.57921332.css",
-    "static/js/main.ddb870f4.js"
+    "static/css/main.9f2cf45f.css",
+    "static/js/main.e8727040.js"
   ]
 }
