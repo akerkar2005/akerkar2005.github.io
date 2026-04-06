@@ -3,13 +3,50 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './StickyHeader.css'; // Create a separate CSS file for the header styles
 import face from '../assets/face.svg';
 import ahhh from '../assets/ahhh.png';
+import disableIcon from '../assets/disabled.png';
+import enableIcon from '../assets/enabled.gif';
 
-function StickyHeader({ bodyRef, setIsComplete }) {
+function StickyHeader({ bodyRef, disableAnimations, setDisableAnimations }) {
     const navigate = useNavigate();
     const location = useLocation();
     const sidebarRef = useRef(null); // Ref for the sidebar
     const hamburgerRef = useRef(null); // Ref for the hamburger menu
     const [isMenuOpen, setIsMenuOpen] = useState(false); // Track hamburger menu state
+
+    // Persistent animation state (shared across all pages)
+    const [localDisable, setLocalDisable] = useState(() => {
+        const cached = localStorage.getItem('disableAnimations');
+        return cached === 'true';
+    });
+
+    // Always sync localDisable with localStorage on mount
+    useEffect(() => {
+        const cached = localStorage.getItem('disableAnimations');
+        if (cached === 'true' && !localDisable) setLocalDisable(true);
+        if (cached !== 'true' && localDisable) setLocalDisable(false);
+    }, []);
+
+    // If parent provides setDisableAnimations, use that, else use localDisable
+    const effectiveDisable = typeof setDisableAnimations === 'function'
+        ? disableAnimations
+        : localDisable;
+
+    // Persist animation state to localStorage
+    useEffect(() => {
+        localStorage.setItem('disableAnimations', effectiveDisable ? 'true' : 'false');
+    }, [effectiveDisable]);
+
+    // Add/remove a CSS class to <body> to globally disable animations
+    useEffect(() => {
+        if (effectiveDisable) {
+            document.body.classList.add('no-animations');
+        } else {
+            document.body.classList.remove('no-animations');
+        }
+        return () => {
+            document.body.classList.remove('no-animations');
+        };
+    }, [effectiveDisable]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -70,10 +107,7 @@ function StickyHeader({ bodyRef, setIsComplete }) {
 
     const on182Click = () => {
         if (location.pathname !== '/182') {
-            setIsComplete(true);
-            setTimeout(() => {
-                navigate('/182');
-            }, 600); // Match the collapse duration
+            navigate('/182');
         }
         else {
             const targetElement = bodyRef?.current || document.documentElement;
@@ -85,10 +119,7 @@ function StickyHeader({ bodyRef, setIsComplete }) {
     // Handle navigation to Projects page
     const onProjectClick = () => {
         if (location.pathname !== '/projects') {
-            setIsComplete(true);
-            setTimeout(() => {
-                navigate('/projects');
-            }, 600); // Match the collapse duration
+            navigate('/projects');
         }
         else {
             const targetElement = bodyRef?.current || document.documentElement;
@@ -98,10 +129,7 @@ function StickyHeader({ bodyRef, setIsComplete }) {
 
     const onHomeClick = () => {
         if (location.pathname !== '/home') {
-            setIsComplete(true);
-            setTimeout(() => {
-                navigate('/home');
-            }, 600); // Match the collapse duration
+            navigate('/home');
         }
         else {
             const targetElement = bodyRef?.current || document.documentElement;
@@ -156,6 +184,37 @@ function StickyHeader({ bodyRef, setIsComplete }) {
                     >
                         182
                     </button>
+                    <button
+
+                        onClick={() => {
+                            if (typeof setDisableAnimations === 'function') {
+                                setDisableAnimations(v => {
+                                    localStorage.setItem('disableAnimations', !v ? 'true' : 'false');
+                                    return !v;
+                                });
+                            } else {
+                                setLocalDisable(v => {
+                                    localStorage.setItem('disableAnimations', !v ? 'true' : 'false');
+                                    return !v;
+                                });
+                            }
+                        }}
+                        style={{
+                            marginLeft: 12,
+                            display: 'inline-block',
+                            background: 'none',
+                            border: 'none',
+                            paddingLeft: 50,
+                            scale: '2',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <img
+                            src={effectiveDisable ? disableIcon : enableIcon}
+                            alt={effectiveDisable ? 'Enable Animations' : 'Disable Animations'}
+                            style={{ width: 32, height: 32 }}
+                        />
+                    </button>
                 </div>
             </nav>
             <nav className="mobile-nav">
@@ -199,6 +258,37 @@ function StickyHeader({ bodyRef, setIsComplete }) {
                             onClick={on182Click}
                         >
                             182
+                        </button>
+                        <button
+                            className="hover-btn"
+                            onClick={() => {
+                                if (typeof setDisableAnimations === 'function') {
+                                    setDisableAnimations(v => {
+                                        localStorage.setItem('disableAnimations', !v ? 'true' : 'false');
+                                        return !v;
+                                    });
+                                } else {
+                                    setLocalDisable(v => {
+                                        localStorage.setItem('disableAnimations', !v ? 'true' : 'false');
+                                        return !v;
+                                    });
+                                }
+                            }}
+                            style={{
+                                marginLeft: 12,
+                                display: 'inline-block',
+                                background: 'none',
+                                border: 'none',
+                                padding: '0',
+                                transform: 'translateY(-50px)',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <img
+                                src={effectiveDisable ? disableIcon : enableIcon}
+                                alt={effectiveDisable ? 'Enable Animations' : 'Disable Animations'}
+                                style={{ width: 64, height: 64 }}
+                            />
                         </button>
                     </ul>
                 </aside>

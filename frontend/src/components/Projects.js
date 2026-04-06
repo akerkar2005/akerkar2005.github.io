@@ -7,8 +7,6 @@ import Particle from './Particle';
 import CircularIcons from './CircularIcons';
 import TermHeader from './TerminalHeader';
 import StickyHeader from './StickyHeader';
-import VerticalTimeline from './VerticalTimeline';
-import ProjectPopup from './ProjectPopup';
 
 import python from '../assets/pythonblack.png';
 import reacticon from '../assets/reactblack.png';
@@ -21,18 +19,92 @@ import face from '../assets/face.svg';
 import autocorrect from '../assets/autocorrect.png';
 import whatsupboilerup from '../assets/whatsupboilerup.png';
 
-function Projects({ onExpand }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [isComplete, setIsComplete] = useState(false);
-    const headerRef = useRef(null);
+function wrapText(text, maxCharsPerLine) {
+    const wrapSingleParagraph = (paragraph, width) => {
+        const words = paragraph.split(/\s+/).filter(Boolean);
+
+        if (words.length === 0) {
+            return [''];
+        }
+
+        const lines = [];
+        let currentLine = '';
+
+        const pushWordChunks = (word) => {
+            for (let startIndex = 0; startIndex < word.length; startIndex += width) {
+                lines.push(word.slice(startIndex, startIndex + width));
+            }
+        };
+
+        for (const word of words) {
+            if (word.length > width) {
+                if (currentLine) {
+                    lines.push(currentLine);
+                    currentLine = '';
+                }
+                pushWordChunks(word);
+                continue;
+            }
+
+            if (!currentLine) {
+                currentLine = word;
+                continue;
+            }
+
+            if (currentLine.length + 1 + word.length <= width) {
+                currentLine += ` ${word}`;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+
+        return lines;
+    };
+
+    return text
+        .split('\n')
+        .map(paragraph => {
+            if (!paragraph.trim()) {
+                return '';
+            }
+
+            const bulletMatch = paragraph.match(/^(\s*[-•*]\s+)/);
+            const bulletPrefix = bulletMatch ? bulletMatch[1] : '';
+            const content = bulletMatch ? paragraph.slice(bulletPrefix.length).trim() : paragraph.trim();
+            const availableWidth = Math.max(1, maxCharsPerLine - bulletPrefix.length);
+            const wrappedLines = wrapSingleParagraph(content, availableWidth);
+
+            return wrappedLines
+                .map((line, index) => (index === 0 ? `${bulletPrefix}${line}` : `${' '.repeat(bulletPrefix.length)}${line}`))
+                .join('\n');
+        })
+        .join('\n');
+}
+
+function Projects({ onExpand, disableAnimations, setDisableAnimations }) {
     const bodyRef = useRef(null);
-    const lastScrollTopRef = useRef(0);
-    const lastScrollTimeRef = useRef(0);
-    const scrollTimeoutRef = useRef(null);
+    const textRef = useRef(null);
+
+    // Add particleRef for each Particle
+    const particleRefs = useRef([]);
+
     const [particles, setParticles] = useState([]);
     const [textHeight, setTextHeight] = useState(0);
-    const textRef = useRef(null);
     const title = "Atharva's Website";
+    const projectIconSize = 65;
+    const descriptionWidth = 90;
+    const projectIconStyle = {
+        width: projectIconSize,
+        height: projectIconSize,
+        display: 'block',
+        objectFit: 'contain',
+        flexShrink: 0
+    };
     
     const [circleSize, setCircleSize] = useState(650); // Default size
     const [iconSize, setIconSize] = useState(120); // Default icon size
@@ -41,31 +113,37 @@ function Projects({ onExpand }) {
     // Example projects array: [title, date, description, icon, link]
     const projects = [
         [
-            "Potato Salad [WIP]",
-            "02/23/2025-present",
-            "[NOT WORKING] BoilerMake Hackathon Project: A stock scraper in Python that fetches stock data and displays it in a user-friendly format with sentimental analysis.",
-            <img src={potato} alt="potato" style={{ width: 50, height: 50, display: 'block' }} />,
+            "Potato Salad (Stock Scraper)",
+            "",
+            "• A stock advisor platform that analyzes ~6000 U.S.-listed stocks\n" + 
+            "• Lets users filter stocks by sector, industry, and financial metrics (P/E, market cap, etc.)\n" +
+            "• Displays tailored stock picks along with key data and sentiment indicators\n" +
+            "• Runs locally with a Python backend and a React-based frontend for interactive use\n",
+            <img src={potato} alt="potato" style={projectIconStyle} />,
             "https://github.com/akerkar2005/potato-salad/"
         ],
         [
         "Autocorrect & Autocomplete",
-        "10/23/2024-present",
-        "A React + Vite research project that implements a custom autocorrect and autocomplete feature using a Trie data structure, Levenshtein distance DP algorithm, and other techniques related to keyboard distance to analyze the nuances of autocorrect and autocomplete systems.",
-        <img src={autocorrect} alt="autocorrect" style={{ width: 50, height: 50, display: 'block' }} />,
+        "",
+        "• Built a full-stack autocorrect and autocomplete system using React, Express, Python, and C++, delivering real-time suggestions via API calls.\n\n" +
+        "• Implemented a high-performance Trie data structure in C++ for prefix-based autocomplete, prioritizing shorter, more relevant completions.\n\n" +
+        "• Designed a custom autocorrect pipeline combining Levenshtein Edit Distance with a novel keyboard proximity (Euclidean distance) heuristic to improve typo accuracy.\n\n" +
+        "• Optimized performance with C++ bindings (pybind11), caching strategies, and constrained search space, enabling efficient real-time text correction.\n\n",
+        <img src={autocorrect} alt="autocorrect" style={projectIconStyle} />,
         "https://github.com/akerkar2005/gui-autocomplete-autocorrect/"
         ],
         [
             "Personal Website",
-            "09/15/2023-present",
-            "Fun website I built with React. You're looking at it right now!",
-            <img src={face} alt="React" style={{ width: 24, height: 24, display: 'block' }} />
+            "",
+            "• Fun website I built with React. You're looking at it right now!",
+            <img src={face} alt="React" style={projectIconStyle} />
         ],
         [
             "What's Up? Boiler Up!",
-            "09/15/2023-present",
-            "Hello World Hackathon Project: webscrapes Purdue event data and displays them on an interactive map of Purdue's campus.",
-            <img src={whatsupboilerup} alt="What's Up? Boiler Up!" style={{ width: 50, height: 50, display: 'block' }} />,
-            "https://www.whatsupboilerup.com/"
+            "",
+            "• Webscrapes Purdue event data and displays them on an interactive map of Purdue's campus.",
+            <img src={whatsupboilerup} alt="What's Up? Boiler Up!" style={projectIconStyle} />,
+            "https://akerkar2005.github.io/whatsupboilerup"
         ]
     ];
 
@@ -119,129 +197,23 @@ function Projects({ onExpand }) {
     
 
     useEffect(() => {
-        if (isComplete) {
-            console.log('Terminal processing complete. Collapsing terminal...');
-            setTimeout(() => {
-                setIsExpanded(false); // Collapse the terminal
-            }, 100); // Duration of collapse (adjust as needed)
-        }
-    }, [isComplete]);    
-
-    const handleScroll = () => {
-        const currentScroll = window.scrollY || document.documentElement.scrollTop;
-        const now = Date.now();
-
-        // Track the scroll speed (difference in scroll position / time)
-        const scrollSpeed = currentScroll - lastScrollTopRef.current;
-
-        // If scroll speed is fast (trackpad-like behavior), hide the header
-        if (scrollSpeed > 100) {
-            if (headerRef.current && bodyRef.current) {
-                headerRef.current.classList.add('scrolled');
-                bodyRef.current.classList.add('body-scrolled');
-            }
+        if (disableAnimations) {
+            if (onExpand) onExpand();
         } else {
-            if (headerRef.current && bodyRef.current) {
-                headerRef.current.classList.remove('scrolled');
-                bodyRef.current.classList.remove('body-scrolled');
-            }
+            if (onExpand) onExpand();
         }
-
-        // Track the last scroll position and time
-        lastScrollTopRef.current = currentScroll;
-        lastScrollTimeRef.current = now;
-
-        // Check if scrolling up too fast, hide the header completely
-        if (scrollSpeed < 0 && currentScroll < 100) {
-            headerRef.current.classList.add('hidden');
-        } else {
-            headerRef.current.classList.remove('hidden');
-        }
-    };
-
-    // Detect scroll direction and apply dynamic effects
-    useEffect(() => {
-        const scrollHandler = () => {
-            clearTimeout(scrollTimeoutRef.current);
-            scrollTimeoutRef.current = setTimeout(() => {
-                headerRef.current.classList.remove('zoom');
-            }, 200); // Reset zoom effect after scrolling stops
-            handleScroll();
-        };
-
-        window.addEventListener('scroll', scrollHandler);
-
-        return () => {
-            window.removeEventListener('scroll', scrollHandler);
-        };
-    }, []);
-
-
-    const particleRef = useRef(null);
-
-    const setProperty = (duration) => {
-      if (particleRef.current) {
-        particleRef.current.style.setProperty('--stop-y', `${duration}em`);
-      }
-    };
-  
-    useEffect(() => {
-        const changeAnimationTime = () => {
-            const animationDuration = Math.random();
-            setProperty(animationDuration);
-        };
-    
-        const interval = setInterval(changeAnimationTime, 10);
-    
-        // Cleanup interval on component unmount
-        return () => clearInterval(interval);
-    }, []); // No dependencies needed
-    
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsExpanded(true); // Start the expansion animation
-            if (onExpand) onExpand(); // Notify parent (App) to hide terminal
-        }, 200);
-
-        return () => clearTimeout(timer); // Clean up the timer
-    }, [onExpand]);
-
-    // Popup state for project details
-    const [popupOpen, setPopupOpen] = useState(false);
-    const [popupIndex, setPopupIndex] = useState(0);
-    const [animating, setAnimating] = useState(false);
-    const [direction, setDirection] = useState(0); // -1 for left, 1 for right
-
-    // Handler to open popup at a given project index
-    const openPopup = idx => {
-        setPopupIndex(idx);
-        setPopupOpen(true);
-        setAnimating(false);
-        setDirection(0);
-    };
-
-    // Handler to switch projects with animation
-    const handleSwitch = (newIdx, dir) => {
-        if (animating) return; // Prevent double triggers
-        setDirection(dir);
-        setAnimating(true);
-        setTimeout(() => {
-            setPopupIndex(newIdx);
-        }, 350); // animate out
-        setTimeout(() => {
-            setAnimating(false);
-        }, 700); // animate in (double the CSS duration)
-    };
+    }, [onExpand, disableAnimations]);
 
     return (
-        <div className={`main-page-wrapper ${isExpanded ? 'expanded' : ''}`}>
+        <div className="main-page-wrapper">
             {/* Terminal Header */}
             <TermHeader headerTitle={title} />
             <div className="contact-content" ref={bodyRef}>
                 <StickyHeader
                     bodyRef={bodyRef}
-                    setIsComplete={setIsComplete}
+                    setIsComplete={() => {}}
+                    disableAnimations={disableAnimations}
+                    setDisableAnimations={setDisableAnimations}
                 />
                 <div className="contact-background">
                     <div className="liquid-text-wrapper">
@@ -249,9 +221,15 @@ function Projects({ onExpand }) {
                           Projects
                         </h1>
                     </div>
-                    {/* Render the water droplets */}
-                    {particles.map((particle, index) => (
-                      <Particle ref={particleRef} key={index} left={particle.left} delay={particle.delay} textHeight={textHeight} />
+                    {/* Only render particles if not disabled */}
+                    {!disableAnimations && particles.map((particle, index) => (
+                      <Particle
+                        ref={el => particleRefs.current[index] = el}
+                        key={index}
+                        left={particle.left}
+                        delay={particle.delay}
+                        textHeight={textHeight}
+                      />
                     ))}
                 </div>
                 <div className="skill-ui">
@@ -261,28 +239,28 @@ function Projects({ onExpand }) {
                         iconSize={iconSize}
                         images={images}
                         centerIcon={reacticon}
+                        disableAnimations={disableAnimations}
                     />
                 </div>
-                {/* Vertical Timeline for Projects */}
-                <div style={{ marginTop: 40, marginBottom: 40, maxWidth: '100vw', maxHeight: '90%' }}>
-                  <VerticalTimeline
-                    projects={projects}
-                    iconSize={100}
-                    onProjectClick={openPopup}
-                  />
+                    <div className="projects-list projects-list-legacy">
+                        {projects.map(([projectTitle, date, description, icon, link]) => (
+                            <div className="project-entry" key={projectTitle}>
+                                <div className="project-entry-header">
+                                    {icon}
+                                    <div>
+                                        <p className="project-title">{projectTitle}</p>
+                                        <p className="project-date">{date}</p>
+                                    </div>
+                                </div>
+                                <p className="project-description">{wrapText(description, descriptionWidth)}</p>
+                                {link && (
+                                    <p className="project-link">
+                                        <a href={link} target="_blank" rel="noopener noreferrer">{link}</a>
+                                    </p>
+                                )}
+                            </div>
+                        ))}
                 </div>
-                {/* Animated Project Popup */}
-                <ProjectPopup
-                  open={popupOpen}
-                  project={projects[popupIndex]}
-                  onClose={() => setPopupOpen(false)}
-                  onPrev={() => handleSwitch((popupIndex - 1 + projects.length) % projects.length, -1)}
-                  onNext={() => handleSwitch((popupIndex + 1) % projects.length, 1)}
-                  animating={animating}
-                  direction={direction}
-                  total={projects.length}
-                  index={popupIndex}
-                />
             </div>
         </div>
     );

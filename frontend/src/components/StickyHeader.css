@@ -146,6 +146,7 @@
     position: relative;
     height: 2rem; /* Adjust the size of the icon */
     width: 2rem;
+    transform: scale(2.5); /* Slightly larger for visibility */
     object-fit: contain; /* Ensure the icon scales properly */
     z-index: 1;
     animation: dance 5s infinite;
@@ -473,3 +474,22 @@
     }
   
   }
+  
+  body.no-animations * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+.nav .hover-btn.animation-toggle {
+    background: #1976d2; /* or #da1075 when disabled, set via inline style */
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: none;
+    margin-left: 12px;
+    display: inline-block;
+    transition: background 0.2s;
+}

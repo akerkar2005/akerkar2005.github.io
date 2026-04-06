@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import './Home.css';
 import './Button.css';
 import img from '../assets/portrait.jpg';
@@ -29,42 +29,24 @@ function AlternatingColorTitle({ text }) {
     );
 }
 
-function Home({ onExpand }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [isComplete, setIsComplete] = useState(false);
+function Home({ disableAnimations, setDisableAnimations }) {
     const bodyRef = useRef(null);
     const title = "Atharva's Website";
-    const bodyText = "I am a man studying Computer Science at Purdue University. I am minoring in Economics and Math.\nPlease feel free to reach out to me if you have any questions or would like to chat.\nAlso yeah, that poorly drawn head on the top left is supposed to be me with glasses.";
-    // Handle terminal collapse after completion
-    useEffect(() => {
-        if (isComplete) {
-            setTimeout(() => {
-                setIsExpanded(false); // Collapse the terminal
-            }, 100);
-        }
-    }, [isComplete]);
-
-    // Expand the terminal initially
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsExpanded(true);
-            if (onExpand) onExpand(); // Notify parent
-        }, 200);
-
-        return () => clearTimeout(timer);
-    }, [onExpand]);
+    const bodyText = "I am a Purdue student majoring in Computer Science and minoring in Economics and Math.\nPlease feel free to reach out to me if you have any questions or would like to chat.\nYou can also download my resume by clicking the download icon below.";
 
     useFontSizeSetter();
 
     return (
-        <div className={`main-page-wrapper ${isExpanded ? 'expanded' : ''}`}>
+        <div className="main-page-wrapper">
             {/* Terminal Header */}
             <TermHeader headerTitle={title} />
             {/* Main Content */}
             <div className="main-content" ref={bodyRef}>
                 <StickyHeader
                     bodyRef={bodyRef}
-                    setIsComplete={setIsComplete}
+                    setIsComplete={() => {}}
+                    disableAnimations={disableAnimations}
+                    setDisableAnimations={setDisableAnimations}
                 />
                 <div className="resume-section">
                     <div className="image-container">

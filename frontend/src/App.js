@@ -22,14 +22,30 @@ function App() {
         }
     }, [hasVisited]);
 
+    // Pass disableAnimations state to all pages for instant transitions
+    const [disableAnimations, setDisableAnimations] = useState(() => {
+        const cached = localStorage.getItem('disableAnimations');
+        return cached === 'true';
+    });
+
+    React.useEffect(() => {
+        localStorage.setItem('disableAnimations', disableAnimations ? 'true' : 'false');
+    }, [disableAnimations]);
+
     return (
         <Router>
-            <AppWithBackground showTerminal={showTerminal} setShowTerminal={setShowTerminal} hasVisited={hasVisited} />
+            <AppWithBackground
+                showTerminal={showTerminal}
+                setShowTerminal={setShowTerminal}
+                hasVisited={hasVisited}
+                disableAnimations={disableAnimations}
+                setDisableAnimations={setDisableAnimations}
+            />
         </Router>
     );
 }
 
-function AppWithBackground({ showTerminal, setShowTerminal, hasVisited }) {
+function AppWithBackground({ showTerminal, setShowTerminal, hasVisited, disableAnimations, setDisableAnimations }) {
     // Decide default route based on visit status
     const defaultRoute = hasVisited ? "/home" : "/terminal";
     return (
@@ -37,10 +53,34 @@ function AppWithBackground({ showTerminal, setShowTerminal, hasVisited }) {
             {/* Main content */}
             {showTerminal && <TermIntro />}
             <Routes>
-                <Route path="/terminal" element={<TermIntro onExpand={() => setShowTerminal(true)} />} />
-                <Route path="/home" element={<Home onExpand={() => setShowTerminal(false)} />} />
-                <Route path="/projects" element={<Projects onExpand={() => setShowTerminal(false)} />} />
-                <Route path="/182" element={<Page182 onExpand={() => setShowTerminal(false)} />} />
+                <Route path="/terminal" element={
+                    <TermIntro
+                        onExpand={() => setShowTerminal(true)}
+                        disableAnimations={disableAnimations}
+                        setDisableAnimations={setDisableAnimations}
+                    />
+                } />
+                <Route path="/home" element={
+                    <Home
+                        onExpand={() => setShowTerminal(false)}
+                        disableAnimations={disableAnimations}
+                        setDisableAnimations={setDisableAnimations}
+                    />
+                } />
+                <Route path="/projects" element={
+                    <Projects
+                        onExpand={() => setShowTerminal(false)}
+                        disableAnimations={disableAnimations}
+                        setDisableAnimations={setDisableAnimations}
+                    />
+                } />
+                <Route path="/182" element={
+                    <Page182
+                        onExpand={() => setShowTerminal(false)}
+                        disableAnimations={disableAnimations}
+                        setDisableAnimations={setDisableAnimations}
+                    />
+                } />
                 <Route path="/" element={<Navigate to={defaultRoute} replace />} />
                 <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

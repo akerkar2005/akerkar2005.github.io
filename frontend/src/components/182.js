@@ -203,9 +203,7 @@ function ImageGallery({ images }) {
   );
 }
 
-function Page182({ onExpand }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+function Page182({ disableAnimations, setDisableAnimations }) {
   const [images, setImages] = useState([]);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -251,25 +249,6 @@ function Page182({ onExpand }) {
     }
   }, [isAuthenticated]);
 
-  // Handle terminal collapse after completion
-  useEffect(() => {
-    if (isComplete) {
-      setTimeout(() => {
-        setIsExpanded(false); // Collapse the terminal
-      }, 100);
-    }
-  }, [isComplete]);
-
-  // Expand the terminal initially
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsExpanded(true);
-      if (onExpand) onExpand(); // Notify parent
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [onExpand]);
-
   // Handle password submit
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -307,12 +286,14 @@ function Page182({ onExpand }) {
   // Always show password form first
   if (!isAuthenticated) {
     return (
-    <div className={`main-page-wrapper ${isExpanded ? 'expanded' : ''}`}>
+      <div className="main-page-wrapper">
         <TermHeader headerTitle={title} />
         <div className="background-with-content">
           <StickyHeader
             bodyRef={bodyRef}
-            setIsComplete={setIsComplete}
+            setIsComplete={() => {}}
+            disableAnimations={disableAnimations}
+            setDisableAnimations={setDisableAnimations}
           />
           <div className="gallery-content-custom" style={{ maxWidth: 400, margin: '0 auto', paddingTop: 150 }}>
             <h2 style={{ color: '#fff', marginBottom: 24 }}>Enter Password to Access Gallery</h2>
@@ -337,12 +318,14 @@ function Page182({ onExpand }) {
   }
 
   return (
-    <div className={`main-page-wrapper ${isExpanded ? 'expanded' : ''}`}>
+    <div className="main-page-wrapper">
       <TermHeader headerTitle={title} />
       <div ref={bodyRef} className="background-with-content">
         <StickyHeader
           bodyRef={bodyRef}
-          setIsComplete={setIsComplete}
+          setIsComplete={() => {}}
+          disableAnimations={disableAnimations}
+          setDisableAnimations={setDisableAnimations}
         />
         <div className="gallery-content-custom">
           <CoolGalleryTitle count={images.length} />
@@ -353,6 +336,5 @@ function Page182({ onExpand }) {
     </div>
   );
 }
-
 
 export default Page182;
